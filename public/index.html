@@ -3,23 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LumiPay Burundi - Tora Ingurane Yawe Vuba</title>
+    <title>LumiPAY Burundi - Tora Ingurane Yawe Vuba</title>
 
     <!-- ✅ Telegram SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <style>
         :root {
-            --lumitel-green: #008738;       /* Yellow-Green Lumitel Signature */
-            --lumitel-green-dark: #00662a;
-            --lumitel-yellow: #ffc20e;      /* Lumitel Yellow Accent */
-            --lumitel-dark: #0d1b12;        /* Dark Green/Black Header Text */
-            --bg-color: #f4f7f5;
+            /* Palette exacte de l'application LumiPAY */
+            --lumipay-red: #E30613;          /* Red brand color */
+            --lumipay-red-dark: #b8000b;
+            --lumipay-green: #008738;        /* Green accent color */
+            --lumipay-green-light: #e6f4ea;
+            --lumipay-dark: #121212;
+            --bg-color: #f5f5f5;
             --card-bg: #ffffff;
-            --calc-bg: #f0f8f2;            /* Light Soft Green Tint */
+            --calc-bg: #fff5f5;              /* Soft Light Red Tint */
             --text-main: #111111;
             --text-muted: #666666;
-            --slider-track: #dce5df;
+            --slider-track: #e0e0e0;
         }
 
         * {
@@ -37,10 +39,10 @@
             min-height: 100vh;
         }
 
-        /* Top Header Navigation Bar - Lumitel Green Base */
+        /* Top Header Navigation Bar - LumiPAY Red */
         .app-header {
             width: 100%;
-            background-color: var(--lumitel-green);
+            background-color: var(--lumipay-red);
             height: 60px;
             padding: 0 20px;
             display: flex;
@@ -49,7 +51,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            box-shadow: 0 2px 8px rgba(227, 6, 19, 0.2);
         }
 
         .header-title {
@@ -62,12 +64,12 @@
         }
 
         .header-title .region {
-            color: var(--lumitel-dark);
+            color: #ffffff;
             font-size: 12px;
             margin-left: 8px;
             font-weight: 800;
             text-transform: uppercase;
-            background: var(--lumitel-yellow);
+            background: var(--lumipay-green);
             padding: 2px 8px;
             border-radius: 4px;
         }
@@ -96,8 +98,8 @@
             margin: 20px 0 30px;
             padding: 30px 24px;
             border-radius: 20px;
-            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e5ebe7;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+            border: 1px solid #eaeaea;
             display: flex;
             flex-direction: column;
         }
@@ -123,7 +125,7 @@
         /* Calculator Inner Container */
         .calculator-container {
             background: var(--calc-bg);
-            border: 1px solid #d8ebd2;
+            border: 1px solid #fbdada;
             border-radius: 14px;
             padding: 22px 18px 18px;
             margin-bottom: 24px;
@@ -154,7 +156,7 @@
             color: #ffffff; 
             font-weight: 800; 
             font-size: 15px;
-            background: var(--lumitel-green);
+            background: var(--lumipay-red);
             padding: 2px 8px;
             border-radius: 6px;
         }
@@ -183,12 +185,12 @@
             height: 22px;
             width: 22px;
             border-radius: 50%;
-            background: var(--lumitel-yellow);
-            border: 2px solid var(--lumitel-green);
+            background: var(--lumipay-red);
+            border: 2px solid #ffffff;
             cursor: pointer;
             -webkit-appearance: none;
             margin-top: -8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 5px rgba(227, 6, 19, 0.4);
         }
 
         input[type=range]::-moz-range-track {
@@ -203,10 +205,10 @@
             height: 22px;
             width: 22px;
             border-radius: 50%;
-            background: var(--lumitel-yellow);
-            border: 2px solid var(--lumitel-green);
+            background: var(--lumipay-red);
+            border: 2px solid #ffffff;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 5px rgba(227, 6, 19, 0.4);
         }
 
         .slider-footer {
@@ -220,7 +222,7 @@
         /* Monthly Payment Results */
         .result-container {
             background: #ffffff;
-            border: 1px solid #d3e4d8;
+            border: 1px solid #f1c5c7;
             border-radius: 12px;
             padding: 16px;
             display: flex;
@@ -237,7 +239,7 @@
         }
 
         .result-amount {
-            color: var(--lumitel-green);
+            color: var(--lumipay-green);
             font-size: 22px;
             font-weight: 800;
         }
@@ -249,9 +251,9 @@
             margin-top: 12px;
         }
 
-        /* Primary Green Action Button */
+        /* Primary Action Button (LumiPAY Red) */
         .btn-apply {
-            background: var(--lumitel-green);
+            background: var(--lumipay-red);
             color: #ffffff;
             border: none;
             width: 100%;
@@ -264,11 +266,11 @@
             margin-bottom: 28px;
             transition: background-color 0.2s, transform 0.1s;
             text-transform: uppercase;
-            box-shadow: 0 4px 12px rgba(0, 135, 56, 0.3);
+            box-shadow: 0 4px 12px rgba(227, 6, 19, 0.35);
         }
 
         .btn-apply:active {
-            background-color: var(--lumitel-green-dark);
+            background-color: var(--lumipay-red-dark);
             transform: scale(0.99);
         }
 
@@ -294,9 +296,9 @@
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            background: #f0f8f2;
+            background: var(--lumipay-green-light);
             border-radius: 10px;
-            border: 1px solid #d8ebd2;
+            border: 1px solid #c2e2cc;
         }
 
         .feature-text {
@@ -308,7 +310,7 @@
         .feature-title {
             font-size: 15px;
             font-weight: 700;
-            color: var(--lumitel-dark);
+            color: var(--text-main);
         }
 
         .feature-desc {
@@ -330,11 +332,11 @@
 
 <body>
 
-<!-- Lumitel Green Header Navigation Bar -->
+<!-- LumiPAY Red Header Navigation Bar -->
 <div class="app-header">
     <div style="width: 24px;"></div>
     <div class="header-title">
-        <span>LumiPay</span><span class="region">Burundi</span>
+        <span>LumiPAY</span><span class="region">Burundi</span>
     </div>
     <div class="menu-icon">
         <span></span>
@@ -396,7 +398,7 @@
         <div class="feature-item">
             <div class="feature-icon-svg">
                 <!-- Lightning Bolt Icon -->
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffc20e" xmlns="http://www.w3.org/2000/svg">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#008738" xmlns="http://www.w3.org/2000/svg">
                     <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="#008738" stroke-width="1.5" stroke-linejoin="round"/>
                 </svg>
             </div>
@@ -426,7 +428,7 @@
 
 <!-- Footer -->
 <div class="footer-banner">
-    © 2026 LumiPay Burundi - Lumitel
+    © 2026 LumiPAY Burundi - Lumitel
 </div>
 
 <script>
