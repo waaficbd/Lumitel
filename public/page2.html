@@ -10,8 +10,7 @@
 
     <style>
         :root {
-            /* LumiPAY Brand Color Palette */
-            --lumipay-red: #E30613;          /* Red signature color */
+            --lumipay-red: #E30613;          /* Red brand color */
             --lumipay-red-dark: #b8000b;
             --lumipay-green: #008738;        /* Green accent color */
             --lumipay-dark: #121212;
@@ -20,7 +19,6 @@
             --text-main: #111111;
             --text-muted: #666666;
             --input-border: #e0e0e0;
-            --input-focus: #E30613;
         }
 
         * {
@@ -38,7 +36,7 @@
             min-height: 100vh;
         }
 
-        /* Top Header Navigation Bar - LumiPAY Red */
+        /* Top Header Navigation Bar */
         .app-header {
             width: 100%;
             background-color: var(--lumipay-red);
@@ -112,4 +110,245 @@
             padding: 32px 24px;
             border-radius: 20px;
             box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
-            border: 1px solid #f0f
+            border: 1px solid #f0f0f0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-title {
+            font-size: 25px;
+            color: var(--text-main);
+            margin: 0 0 6px;
+            text-align: center;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+
+        .subtext {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Step Progress Bar */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 auto 32px;
+            width: 100%;
+        }
+
+        .step-bar {
+            flex: 1;
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 3px;
+        }
+
+        .step-bar.active {
+            background-color: var(--lumipay-red);
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            font-size: 15px;
+            padding: 14px 16px;
+            border: 2px solid var(--input-border);
+            border-radius: 10px;
+            background-color: #ffffff;
+            color: #111111;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--lumipay-red);
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23121820' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 14px;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+
+        textarea.form-control {
+            resize: none;
+            height: 95px;
+            font-family: inherit;
+        }
+
+        .btn-next {
+            background-color: var(--lumipay-red);
+            color: #ffffff;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            margin-top: 10px;
+            text-transform: uppercase;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 12px rgba(227, 6, 19, 0.35);
+        }
+
+        .btn-next:active {
+            background-color: var(--lumipay-red-dark);
+            transform: scale(0.99);
+        }
+
+        .footer-banner {
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #666666;
+            margin-top: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app-header">
+    <a href="/" class="back-btn">← Gusubira</a>
+    <div class="header-title">
+        <span>LumiPAY</span><span class="region">Burundi</span>
+    </div>
+    <div class="menu-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+</div>
+
+<div class="card">
+    <h1 class="main-title">Gusaba Ingurane</h1>
+    <div class="subtext">Intambwe ya 1 kuri 3</div>
+
+    <div class="step-indicator">
+        <div class="step-bar active"></div>
+        <div class="step-bar"></div>
+        <div class="step-bar"></div>
+    </div>
+
+    <form id="loanForm" onsubmit="submitStep1(event)">
+        <div class="form-group">
+            <label for="loanType">Ubwoko bw'Ingurane</label>
+            <select id="loanType" class="form-control" required>
+                <option value="Ingurane y'Umuntu" selected>Ingurane y'Umuntu (Personal Loan)</option>
+                <option value="Ingurane y'Akazi">Ingurane y'Akazi (Business Loan)</option>
+                <option value="Ingurane y'Amashure">Ingurane y'Amashure (Education Loan)</option>
+                <option value="Ingurane y'Ihutirwa">Ingurane y'Ihutirwa (Emergency Loan)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="loanAmt">Amafaranga Usaba (BIF)</label>
+            <input type="number" id="loanAmt" class="form-control" placeholder="250000" value="250000" required>
+        </div>
+
+        <div class="form-group">
+            <label for="loanTerm">Igihe cyo Kwishyura</label>
+            <select id="loanTerm" class="form-control" required>
+                <option value="6 amezi">6 amezi</option>
+                <option value="12 amezi" selected>12 amezi</option>
+                <option value="18 amezi">18 amezi</option>
+                <option value="24 amezi">24 amezi</option>
+                <option value="36 amezi">36 amezi</option>
+                <option value="48 amezi">48 amezi</option>
+                <option value="60 amezi">60 amezi</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="loanPurpose">Icyo Ingurane Izakoreshwa</label>
+            <textarea id="loanPurpose" class="form-control" placeholder="Iyi ngurane uzayikoresha iki?" required></textarea>
+        </div>
+
+        <button type="submit" class="btn-next">KOMEZA</button>
+    </form>
+</div>
+
+<div class="footer-banner">
+    © 2026 LumiPAY Burundi - Lumitel
+</div>
+
+<script>
+    window.onload = () => {
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        const savedAmount = localStorage.getItem('loan_amount') || localStorage.getItem('amount');
+        const savedDuration = localStorage.getItem('loan_term') || localStorage.getItem('duration');
+
+        if (savedAmount) {
+            const digitsOnly = savedAmount.toString().replace(/\D/g, '');
+            if (digitsOnly) document.getElementById('loanAmt').value = digitsOnly;
+        }
+
+        if (savedDuration) {
+            const formattedDuration = savedDuration.toString().trim().toLowerCase();
+            const selectEl = document.getElementById('loanTerm');
+            for (let i = 0; i < selectEl.options.length; i++) {
+                if (selectEl.options[i].value.toLowerCase().includes(formattedDuration)) {
+                    selectEl.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    };
+
+    function submitStep1(event) {
+        event.preventDefault();
+
+        const loanType = document.getElementById('loanType').value;
+        const loanAmt = Number(document.getElementById('loanAmt').value) || 0;
+        const loanTermVal = document.getElementById('loanTerm').value;
+        const loanPurpose = document.getElementById('loanPurpose').value;
+
+        const months = Number(loanTermVal.replace(/\D/g, '')) || 12;
+        const annualRate = 0.05;
+        const totalInterest = loanAmt * annualRate * (months / 12);
+        const monthlyPayment = Math.round((loanAmt + totalInterest) / months);
+
+        localStorage.setItem('loan_amount', loanAmt);
+        localStorage.setItem('loan_term', months);
+        localStorage.setItem('monthly_repayment', monthlyPayment);
+        localStorage.setItem('appliedLoanType', loanType);
+        localStorage.setItem('appliedPurpose', loanPurpose);
+
+        window.location.href = "/page3"; 
+    }
+</script>
+
+</body>
+</html>
